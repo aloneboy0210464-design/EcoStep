@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoStep - Carbon Footprint Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .dark {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation Bar -->
+    <nav id="navbar" class="bg-white shadow-md fixed w-full top-0 z-50 hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold text-green-600">🌱 EcoStep</span>
+                </div>
+                <div class="hidden md:flex space-x-4">
+                    <a href="#" onclick="showPage('dashboard')" class="nav-link text-gray-700 hover:text-green-600 px-3 py-2 rounded-md">Dashboard</a>
+                    <a href="#" onclick="showPage('addActivity')" class="nav-link text-gray-700 hover:text-green-600 px-3 py-2 rounded-md">Add Activity</a>
+                    <a href="#" onclick="showPage('insights')" class="nav-link text-gray-700 hover:text-green-600 px-3 py-2 rounded-md">Insights</a>
+                    <a href="#" onclick="showPage('tips')" class="nav-link text-gray-700 hover:text-green-600 px-3 py-2 rounded-md">Tips</a>
+                    <a href="#" onclick="showPage('leaderboard')" class="nav-link text-gray-700 hover:text-green-600 px-3 py-2 rounded-md">Leaderboard</a>
+                    <a href="#" onclick="showPage('profile')" class="nav-link text-gray-700 hover:text-green-600 px-3 py-2 rounded-md">Profile</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleDarkMode()" class="text-gray-700 hover:text-green-600">
+                        <span id="darkModeIcon">🌙</span>
+                    </button>
+                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Landing Page -->
+    <div id="landing" class="page active">
+        <div class="min-h-screen">
+            <!-- Hero Section -->
+            <div class="gradient-bg text-white">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                    <div class="text-center fade-in">
+                        <h1 class="text-5xl md:text-6xl font-bold mb-6">🌱 Welcome to EcoStep</h1>
+                        <p class="text-xl md:text-2xl mb-8">Track Your Carbon Footprint, Save The Planet</p>
+                        <p class="text-lg mb-10 max-w-2xl mx-auto">Monitor your daily activities, calculate CO2 emissions, and get personalized tips to reduce your environmental impact.</p>
+                        <div class="space-x-4">
+                            <button onclick="showPage('signup')" class="bg-white text-green-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition">Get Started</button>
+                            <button onclick="showPage('login')" class="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-green-600 transition">Login</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+                <h2 class="text-4xl font-bold text-center mb-12 text-gray-800">Features</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="card bg-white p-6 rounded-lg shadow-md">
+                        <div class="text-4xl mb-4">📊</div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">Track Activities</h3>
+                        <p class="text-gray-600">Log your transportation, food, electricity usage, and shopping activities daily.</p>
+                    </div>
+                    <div class="card bg-white p-6 rounded-lg shadow-md">
+                        <div class="text-4xl mb-4">🌍</div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">Calculate CO2</h3>
+                        <p class="text-gray-600">Get accurate carbon footprint calculations for all your activities.</p>
+                    </div>
+                    <div class="card bg-white p-6 rounded-lg shadow-md">
+                        <div class="text-4xl mb-4">📈</div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">Visual Insights</h3>
+                        <p class="text-gray-600">View charts and graphs showing your emissions over time.</p>
+                    </div>
+                    <div class="card bg-white p-6 rounded-lg shadow-md">
+                        <div class="text-4xl mb-4">💡</div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">Eco Tips</h3>
+                        <p class="text-gray-600">Get personalized suggestions to reduce your carbon footprint.</p>
+                    </div>
+                    <div class="card bg-white p-6 rounded-lg shadow-md">
+                        <div class="text-4xl mb-4">🏆</div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">Gamification</h3>
+                        <p class="text-gray-600">Earn points, badges, and compete with others on the leaderboard.</p>
+                    </div>
+                    <div class="card bg-white p-6 rounded-lg shadow-md">
+                        <div class="text-4xl mb-4">🔥</div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-800">Streak Counter</h3>
+                        <p class="text-gray-600">Build a habit by logging activities daily and maintaining your streak.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How It Works -->
+            <div class="bg-green-50 py-20">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 class="text-4xl font-bold text-center mb-12 text-gray-800">How It Works</h2>
+                    <div class="grid md:grid-cols-4 gap-6 text-center">
+                        <div>
+                            <div class="text-5xl mb-4">1️⃣</div>
+                            <h3 class="text-xl font-bold mb-2 text-gray-800">Sign Up</h3>
+                            <p class="text-gray-600">Create your free account</p>
+                        </div>
+                        <div>
+                            <div class="text-5xl mb-4">2️⃣</div>
+                            <h3 class="text-xl font-bold mb-2 text-gray-800">Log Activities</h3>
+                            <p class="text-gray-600">Track your daily activities</p>
+                        </div>
+                        <div>
+                            <div class="text-5xl mb-4">3️⃣</div>
+                            <h3 class="text-xl font-bold mb-2 text-gray-800">See Insights</h3>
+                            <p class="text-gray-600">View your carbon footprint</p>
+                        </div>
+                        <div>
+                            <div class="text-5xl mb-4">4️⃣</div>
+                            <h3 class="text-xl font-bold mb-2 text-gray-800">Take Action</h3>
+                            <p class="text-gray-600">Reduce your emissions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="bg-gray-800 text-white py-8">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <p>&copy; 2024 EcoStep. All rights reserved. Save the planet, one step at a time. 🌍</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Sign Up Page -->
+    <div id="signup" class="page">
+        <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-400 to-green-600 py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-md w-full bg-white rounded-lg shadow-xl p-8 fade-in">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800">Create Account</h2>
+                    <p class="text-gray-600 mt-2">Join EcoStep and start your green journey</p>
+                </div>
+                <form onsubmit="handleSignup(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Full Name</label>
+                        <input type="text" id="signupName" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Email</label>
+                        <input type="email" id="signupEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 mb-2">Password</label>
+                        <input type="password" id="signupPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-md hover:bg-green-700 transition font-semibold">Sign Up</button>
+                </form>
+                <p class="text-center mt-4 text-gray-600">
+                    Already have an account? 
+                    <a href="#" onclick="showPage('login')" class="text-green-600 hover:underline">Login</a>
+                </p>
+                <button onclick="showPage('landing')" class="w-full mt-4 text-gray-600 hover:text-gray-800">← Back to Home</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Page -->
+    <div id="login" class="page">
+        <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-400 to-green-600 py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-md w-full bg-white rounded-lg shadow-xl p-8 fade-in">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800">Welcome Back</h2>
+                    <p class="text-gray-600 mt-2">Login to continue your green journey</p>
+                </div>
+                <form onsubmit="handleLogin(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Email</label>
+                        <input type="email" id="loginEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 mb-2">Password</label>
+                        <input type="password" id="loginPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-md hover:bg-green-700 transition font-semibold">Login</button>
+                </form>
+                <p class="text-center mt-4 text-gray-600">
+                    Don't have an account? 
+                    <a href="#" onclick="showPage('signup')" class="text-green-600 hover:underline">Sign Up</a>
+                </p>
+                <button onclick="showPage('landing')" class="w-full mt-4 text-gray-600 hover:text-gray-800">← Back to Home</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboard" class="page">
+        <div class="pt-20 min-h-screen bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="mb-8 fade-in">
+                    <h1 class="text-4xl font-bold text-gray-800 mb-2">Dashboard</h1>
+                    <p class="text-gray-600">Welcome back, <span id="dashboardUserName" class="font-semibold"></span>! 🌱</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-md p-6 card">
+                        <div class="text-sm text-gray-600 mb-1">Today's Footprint</div>
+                        <div class="text-3xl font-bold text-green-600" id="todayFootprint">0 kg</div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6 card">
+                        <div class="text-sm text-gray-600 mb-1">Weekly Total</div>
+                        <div class="text-3xl font-bold text-blue-600" id="weeklyFootprint">0 kg</div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6 card">
+                        <div class="text-sm text-gray-600 mb-1">Monthly Total</div>
+                        <div class="text-3xl font-bold text-purple-600" id="monthlyFootprint">0 kg</div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6 card">
+                        <div class="text-sm text-gray-600 mb-1">Daily Streak</div>
+                        <div class="text-3xl font-bold text-orange-600" id="streakCount">🔥 0 days</div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Category Breakdown</h3>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Weekly Trend</h3>
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Comparison -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">Comparison with Average</h3>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600">Average Person (Daily)</p>
+                            <p class="text-2xl font-bold text-gray-800">36.4 kg CO2</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Your Average (Daily)</p>
+                            <p class="text-2xl font-bold text-green-600" id="userAverage">0 kg CO2</p>
+                        </div>
+                        <div id="comparisonMessage" class="text-lg font-semibold"></div>
+                    </div>
+                </div>
+
+                <!-- Recent Activities -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">Recent Activities</h3>
+                    <div id="recentActivities" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Activity Page -->
+    <div id="addActivity" class="page">
+        <div class="pt-20 min-h-screen bg-gray-50">
+            <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="bg-white rounded-lg shadow-md p-8 fade-in">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-6">Log Activity</h1>
+                    
+                    <form onsubmit="handleAddActivity(event)">
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Category</label>
+                            <select id="activityCategory" onchange="updateSubcategories()" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="">Select Category</option>
+                                <option value="transportation">🚗 Transportation</option>
+                                <option value="food">🍽️ Food</option>
+                                <option value="electricity">⚡ Electricity</option>
+                                <option value="shopping">🛍️ Shopping</option>
+                            </select>
+                        </div>
+
+                        <div id="subcategoryDiv" class="mb-6 hidden">
+                            <label class="block text-gray-700 font-semibold mb-2">Type</label>
+                            <select id="activitySubcategory" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="">Select Type</option>
+                            </select>
+                        </div>
+
+                        <div id="valueDiv" class="mb-6 hidden">
+                            <label class="block text-gray-700 font-semibold mb-2" id="valueLabel">Value</label>
+                            <input type="number" step="0.1" id="activityValue" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <p class="text-sm text-gray-500 mt-1" id="valueHint"></p>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-semibold mb-2">Date</label>
+                            <input type="date" id="activityDate" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+
+                        <div id="calculationPreview" class="mb-6 p-4 bg-green-50 rounded-md hidden">
+                            <p class="text-gray-700">Estimated CO2 Emission: <span id="previewEmission" class="font-bold text-green-600"></span></p>
+                        </div>
+
+                        <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-md hover:bg-green-700 transition font-semibold">Add Activity</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights Page -->
+    <div id="insights" class="page">
+        <div class="pt-20 min-h-screen bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <h1 class="text-4xl font-bold text-gray-800 mb-8 fade-in">Insights & Reports</h1>
+
+                <!-- Time Period Selector -->
+                <div class="mb-6">
+                    <div class="bg-white rounded-lg shadow-md p-4 inline-flex space-x-4">
+                        <button onclick="setInsightsPeriod('week')" id="weekBtn" class="px-6 py-2 rounded-md bg-green-600 text-white font-semibold">Weekly</button>
+                        <button onclick="setInsightsPeriod('month')" id="monthBtn" class="px-6 py-2 rounded-md bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300">Monthly</button>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Emissions Over Time</h3>
+                        <canvas id="insightsLineChart"></canvas>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Category Distribution</h3>
+                        <canvas id="insightsPieChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h4 class="text-lg font-semibold text-gray-700 mb-2">Total Emissions</h4>
+                        <p class="text-3xl font-bold text-green-600" id="insightsTotalEmissions">0 kg CO2</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h4 class="text-lg font-semibold text-gray-700 mb-2">Average Daily</h4>
+                        <p class="text-3xl font-bold text-blue-600" id="insightsAvgDaily">0 kg CO2</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h4 class="text-lg font-semibold text-gray-700 mb-2">Highest Category</h4>
+                        <p class="text-3xl font-bold text-purple-600" id="insightsHighestCategory">-</p>
+                    </div>
+                </div>
+
+                <!-- Predictions -->
+                <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-md p-8 text-white">
+                    <h3 class="text-2xl font-bold mb-4">🔮 AI Prediction</h3>
+                    <p class="text-lg mb-2">Based on your current pattern:</p>
+                    <p class="text-3xl font-bold" id="predictionText">Next week: ~0 kg CO2</p>
+                    <p class="mt-4 text-sm opacity-90">Keep logging activities daily for more accurate predictions!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tips Page -->
+    <div id="tips" class="page">
+        <div class="pt-20 min-h-screen bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4 fade-in">Eco-Friendly Tips</h1>
+                <p class="text-gray-600 mb-8">Personalized suggestions to reduce your carbon footprint</p>
+
+                <!-- Personalized Tips -->
+                <div class="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg shadow-md p-8 mb-8 text-white">
+                    <h2 class="text-2xl font-bold mb-4">💡 Your Top Priority</h2>
+                    <p id="personalizedTip" class="text-lg">Start logging activities to get personalized tips!</p>
+                </div>
+
+                <!-- Category-wise Tips -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Transportation Tips -->
+                    <div class="bg-white rounded-lg shadow-md p-6 card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🚗 Transportation</h3>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Use public transport, bike, or walk instead of driving</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Carpool with colleagues or friends</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Consider electric or hybrid vehicles</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Combine errands to reduce trips</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Fly less and choose direct flights when possible</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Food Tips -->
+                    <div class="bg-white rounded-lg shadow-md p-6 card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🍽️ Food</h3>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Eat more plant-based meals</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Reduce meat consumption, especially beef</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Buy local and seasonal produce</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Minimize food waste</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Grow your own vegetables if possible</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Electricity Tips -->
+                    <div class="bg-white rounded-lg shadow-md p-6 card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">⚡ Electricity</h3>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Switch to LED bulbs</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Unplug devices when not in use</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Use energy-efficient appliances</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Set AC to 24-26°C and use fans</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Consider solar panels if feasible</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Shopping Tips -->
+                    <div class="bg-white rounded-lg shadow-md p-6 card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🛍️ Shopping</h3>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Buy less, choose quality over quantity</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Use reusable bags and avoid plastic</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Buy second-hand or refurbished items</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Repair instead of replacing</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-green-600 mr-2">✓</span>
+                                <span>Support sustainable brands</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Additional Resources -->
+                <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">📚 Quick Facts</h3>
+                    <div class="grid md:grid-cols-3 gap-4 text-center">
+                        <div class="p-4 bg-green-50 rounded-md">
+                            <p class="text-3xl font-bold text-green-600 mb-2">21%</p>
+                            <p class="text-gray-700">CO2 reduction by cycling vs driving</p>
+                        </div>
+                        <div class="p-4 bg-blue-50 rounded-md">
+                            <p class="text-3xl font-bold text-blue-600 mb-2">73%</p>
+                            <p class="text-gray-700">Less emissions from veg vs beef meals</p>
+                        </div>
+                        <div class="p-4 bg-purple-50 rounded-md">
+                            <p class="text-3xl font-bold text-purple-600 mb-2">30%</p>
+                            <p class="text-gray-700">Energy saved by LED bulbs</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Page -->
+    <div id="leaderboard" class="page">
+        <div class="pt-20 min-h-screen bg-gray-50">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4 fade-in">🏆 Leaderboard</h1>
+                <p class="text-gray-600 mb-8">Top eco-warriors with the lowest carbon footprint this week</p>
+
+                <!-- Your Rank -->
+                <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-md p-6 mb-8 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-lg mb-1">Your Rank</p>
+                            <p class="text-4xl font-bold" id="userRank">#-</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-lg mb-1">Your Score</p>
+                            <p class="text-4xl font-bold" id="userPoints">0 pts</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard List -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div id="leaderboardList"></div>
+                </div>
+
+                <p class="text-center text-gray-500 mt-6 text-sm">
+                    Rankings based on points earned. Lower carbon footprint = More points!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Page -->
+    <div id="profile" class="page">
+        <div class="pt-20 min-h-screen bg-gray-50">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <h1 class="text-4xl font-bold text-gray-800 mb-8 fade-in">Profile</h1>
+
+                <!-- User Info -->
+                <div class="bg-white rounded-lg shadow-md p-8 mb-8">
+                    <div class="flex items-center mb-6">
+                        <div class="w-24 h-24 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center text-4xl text-white font-bold">
+                            <span id="profileInitial"></span>
+                        </div>
+                        <div class="ml-6">
+                            <h2 class="text-2xl font-bold text-gray-800" id="profileName"></h2>
+                            <p class="text-gray-600" id="profileEmail"></p>
+                            <p class="text-sm text-gray-500 mt-1">Member since <span id="profileJoinDate"></span></p>
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="grid md:grid-cols-4 gap-4 mt-6">
+                        <div class="text-center p-4 bg-green-50 rounded-md">
+                            <p class="text-2xl font-bold text-green-600" id="profilePoints">0</p>
+                            <p class="text-sm text-gray-600">Points</p>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded-md">
+                            <p class="text-2xl font-bold text-blue-600" id="profileStreak">0</p>
+                            <p class="text-sm text-gray-600">Day Streak</p>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-md">
+                            <p class="text-2xl font-bold text-purple-600" id="profileBadges">0</p>
+                            <p class="text-sm text-gray-600">Badges</p>
+                        </div>
+                        <div class="text-center p-4 bg-orange-50 rounded-md">
+                            <p class="text-2xl font-bold text-orange-600" id="profileActivities">0</p>
+                            <p class="text-sm text-gray-600">Activities</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Badges -->
+                <div class="bg-white rounded-lg shadow-md p-8 mb-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">🏅 Your Badges</h3>
+                    <div id="badgesContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+                </div>
+
+                <!-- Settings -->
+                <div class="bg-white rounded-lg shadow-md p-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">⚙️ Settings</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-md">
+                            <span class="text-gray-700">Email Notifications</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-md">
+                            <span class="text-gray-700">Weekly Reports</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
+                        </div>
+                        <button onclick="clearAllData()" class="w-full bg-red-500 text-white py-3 rounded-md hover:bg-red-600 transition font-semibold mt-4">Clear All Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // DATA STRUCTURES & STORAGE
+        // ============================================
+
+        // Carbon emission factors (kg CO2)
+        const emissionFactors = {
+            transportation: {
+                car: { factor: 0.21, unit: 'km', label: 'Car' },
+                bus: { factor: 0.089, unit: 'km', label: 'Bus' },
+                train: { factor: 0.041, unit: 'km', label: 'Train' },
+                flight: { factor: 0.255, unit: 'km', label: 'Flight' },
+                bike: { factor: 0, unit: 'km', label: 'Bike' }
+            },
+            food: {
+                beef: { factor: 6.61, unit: 'meal', label: 'Beef Meal' },
+                chicken: { factor: 2.45, unit: 'meal', label: 'Chicken Meal' },
+                pork: { factor: 3.5, unit: 'meal', label: 'Pork Meal' },
+                fish: { factor: 1.5, unit: 'meal', label: 'Fish Meal' },
+                vegetarian: { factor: 0.39, unit: 'meal', label: 'Vegetarian Meal' },
+                dairy: { factor: 1.2, unit: 'serving', label: 'Dairy' }
+            },
+            electricity: {
+                ac: { factor: 1.5, unit: 'hour', label: 'Air Conditioner' },
+                heater: { factor: 1.8, unit: 'hour', label: 'Heater' },
+                general: { factor: 0.92, unit: 'kWh', label: 'General Usage' }
+            },
+            shopping: {
+                clothes: { factor: 5.5, unit: 'item', label: 'Clothing' },
+                electronics: { factor: 15, unit: 'item', label: 'Electronics' },
+                plastic: { factor: 2, unit: 'item', label: 'Plastic Items' }
+            }
+        };
+
+        // Badges system
+        const badges = {
+            greenStarter: { name: 'Green Starter', icon: '🌱', condition: 'points', value: 10, earned: false },
+            ecoWarrior: { name: 'Eco Warrior', icon: '⚔️', condition: 'points', value: 50, earned: false },
+            planetSaver: { name: 'Planet Saver', icon: '🌍', condition: 'points', value: 100, earned: false },
+            weekStreak: { name: 'Week Warrior', icon: '🔥', condition: 'streak', value: 7, earned: false },
+            monthStreak: { name: 'Month Master', icon: '👑', condition: 'streak', value: 30, earned: false },
+            lowFootprint: { name: 'Carbon Cutter', icon: '✂️', condition: 'custom', earned: false }
+        };
+
+        // Initialize localStorage
+        function initStorage() {
+            if (!localStorage.getItem('ecostep_users')) {
+                localStorage.setItem('ecostep_users', JSON.stringify([]));
+            }
+            if (!localStorage.getItem('ecostep_activities')) {
+                localStorage.setItem('ecostep_activities', JSON.stringify([]));
+            }
+            if (!localStorage.getItem('ecostep_leaderboard')) {
+                // Initialize with some demo users for leaderboard
+                const demoUsers = [
+                    { name: 'Sarah Green', points: 150, avgFootprint: 18.5 },
+                    { name: 'Mike Eco', points: 135, avgFootprint: 20.2 },
+                    { name: 'Emma Nature', points: 120, avgFootprint: 22.1 },
+                    { name: 'John Planet', points: 105, avgFootprint: 24.3 },
+                    { name: 'Lisa Earth', points: 90, avgFootprint: 26.8 }
+                ];
+                localStorage.setItem('ecostep_leaderboard', JSON.stringify(demoUsers));
+            }
+        }
+
+        // ============================================
+        // PAGE NAVIGATION
+        // ============================================
+
+        let currentUser = null;
+        let currentPage = 'landing';
+
+        function showPage(pageName) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // Show selected page
+            document.getElementById(pageName).classList.add('active');
+            currentPage = pageName;
+
+            // Show/hide navbar
+            const publicPages = ['landing', 'signup', 'login'];
+            if (publicPages.includes(pageName)) {
+                document.getElementById('navbar').classList.add('hidden');
+            } else {
+                document.getElementById('navbar').classList.remove('hidden');
+                // Load page-specific data
+                switch(pageName) {
+                    case 'dashboard':
+                        loadDashboard();
+                        break;
+                    case 'insights':
+                        loadInsights('week');
+                        break;
+                    case 'tips':
+                        loadTips();
+                        break;
+                    case 'leaderboard':
+                        loadLeaderboard();
+                        break;
+                    case 'profile':
+                        loadProfile();
+                        break;
+                    case 'addActivity':
+                        setTodayDate();
+                        break;
+                }
+            }
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // ============================================
+        // AUTHENTICATION
+        // ============================================
+
+        function handleSignup(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+
+            const users = JSON.parse(localStorage.getItem('ecostep_users'));
+            
+            // Check if user exists
+            if (users.find(u => u.email === email)) {
+                alert('User already exists! Please login.');
+                return;
+            }
+
+            // Create new user
+            const newUser = {
+                id: Date.now().toString(),
+                name: name,
+                email: email,
+                password: password, // In production, this should be hashed
+                totalCarbonFootprint: 0,
+                points: 0,
+                badges: [],
+                streak: 0,
+                lastActivity: null,
+                createdAt: new Date().toISOString()
+            };
+
+            users.push(newUser);
+            localStorage.setItem('ecostep_users', JSON.stringify(users));
+
+            alert('Account created successfully! Please login.');
+            showPage('login');
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const users = JSON.parse(localStorage.getItem('ecostep_users'));
+            const user = users.find(u => u.email === email && u.password === password);
+
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('ecostep_currentUser', JSON.stringify(user));
+                updateStreak();
+                showPage('dashboard');
+            } else {
+                alert('Invalid credentials!');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('ecostep_currentUser');
+            showPage('landing');
+        }
+
+        function checkAuth() {
+            const savedUser = localStorage.getItem('ecostep_currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showPage('dashboard');
+            }
+        }
+
+        // ============================================
+        // ACTIVITY MANAGEMENT
+        // ============================================
+
+        function updateSubcategories() {
+            const category = document.getElementById('activityCategory').value;
+            const subcategoryDiv = document.getElementById('subcategoryDiv');
+            const subcategorySelect = document.getElementById('activitySubcategory');
+            const valueDiv = document.getElementById('valueDiv');
+
+            if (!category) {
+                subcategoryDiv.classList.add('hidden');
+                valueDiv.classList.add('hidden');
+                return;
+            }
+
+            subcategoryDiv.classList.remove('hidden');
+            subcategorySelect.innerHTML = '<option value="">Select Type</option>';
+
+            const options = emissionFactors[category];
+            for (const [key, value] of Object.entries(options)) {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = value.label;
+                subcategorySelect.appendChild(option);
+            }
+
+            subcategorySelect.onchange = updateValueInput;
+        }
+
+        function updateValueInput() {
+            const category = document.getElementById('activityCategory').value;
+            const subcategory = document.getElementById('activitySubcategory').value;
+            const valueDiv = document.getElementById('valueDiv');
+            const valueLabel = document.getElementById('valueLabel');
+            const valueHint = document.getElementById('valueHint');
+            const valueInput = document.getElementById('activityValue');
+
+            if (!subcategory) {
+                valueDiv.classList.add('hidden');
+                return;
+            }
+
+            valueDiv.classList.remove('hidden');
+            const data = emissionFactors[category][subcategory];
+            
+            valueLabel.textContent = `Value (${data.unit})`;
+            valueHint.textContent = `Enter the ${data.unit === 'km' ? 'distance in kilometers' : 
+                                      data.unit === 'hour' ? 'hours of usage' : 
+                                      data.unit === 'kWh' ? 'kilowatt-hours' : 
+                                      'number of ' + data.unit + 's'}`;
+
+            valueInput.oninput = calculatePreview;
+            calculatePreview();
+        }
+
+        function calculatePreview() {
+            const category = document.getElementById('activityCategory').value;
+            const subcategory = document.getElementById('activitySubcategory').value;
+            const value = parseFloat(document.getElementById('activityValue').value);
+            const previewDiv = document.getElementById('calculationPreview');
+            const previewEmission = document.getElementById('previewEmission');
+
+            if (!value || value <= 0) {
+                previewDiv.classList.add('hidden');
+                return;
+            }
+
+            const emission = calculateEmission(category, subcategory, value);
+            previewDiv.classList.remove('hidden');
+            previewEmission.textContent = `${emission.toFixed(2)} kg CO2`;
+        }
+
+        function calculateEmission(category, subcategory, value) {
+            return emissionFactors[category][subcategory].factor * value;
+        }
+
+        function handleAddActivity(event) {
+            event.preventDefault();
+
+            const category = document.getElementById('activityCategory').value;
+            const subcategory = document.getElementById('activitySubcategory').value;
+            const value = parseFloat(document.getElementById('activityValue').value);
+            const date = document.getElementById('activityDate').value;
+
+            const emission = calculateEmission(category, subcategory, value);
+
+            const activity = {
+                id: Date.now().toString(),
+                userId: currentUser.id,
+                category: category,
+                subcategory: subcategory,
+                value: value,
+                carbonEmission: emission,
+                date: date,
+                createdAt: new Date().toISOString()
+            };
+
+            // Save activity
+            const activities = JSON.parse(localStorage.getItem('ecostep_activities'));
+            activities.push(activity);
+            localStorage.setItem('ecostep_activities', JSON.stringify(activities));
+
+            // Update user stats
+            updateUserStats(emission);
+
+            alert(`Activity logged! CO2 Emission: ${emission.toFixed(2)} kg`);
+            
+            // Reset form
+            event.target.reset();
+            document.getElementById('subcategoryDiv').classList.add('hidden');
+            document.getElementById('valueDiv').classList.add('hidden');
+            document.getElementById('calculationPreview').classList.add('hidden');
+
+            // Redirect to dashboard
+            showPage('dashboard');
+        }
+
+        function updateUserStats(emission) {
+            const users = JSON.parse(localStorage.getItem('ecostep_users'));
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            
+            users[userIndex].totalCarbonFootprint += emission;
+            
+            // Calculate points (lower footprint = more points)
+            const avgDaily = 36.4; // Average person daily CO2
+            if (emission < avgDaily) {
+                const pointsEarned = Math.floor((avgDaily - emission) * 2);
+                users[userIndex].points += Math.max(pointsEarned, 1);
+            }
+
+            users[userIndex].lastActivity = new Date().toISOString();
+
+            currentUser = users[userIndex];
+            localStorage.setItem('ecostep_users', JSON.stringify(users));
+            localStorage.setItem('ecostep_currentUser', JSON.stringify(currentUser));
+
+            checkBadges();
+            updateLeaderboard();
+        }
+
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('activityDate').value = today;
+        }
+
+        // ============================================
+        // DASHBOARD
+        // ============================================
+
+        function loadDashboard() {
+            document.getElementById('dashboardUserName').textContent = currentUser.name;
+
+            const activities = getUserActivities();
+            
+            // Calculate stats
+            const today = new Date().toISOString().split('T')[0];
+            const todayActivities = activities.filter(a => a.date === today);
+            const todayFootprint = todayActivities.reduce((sum, a) => sum + a.carbonEmission, 0);
+
+            const weekStart = new Date();
+            weekStart.setDate(weekStart.getDate() - 7);
+            const weekActivities = activities.filter(a => new Date(a.date) >= weekStart);
+            const weekFootprint = weekActivities.reduce((sum, a) => sum + a.carbonEmission, 0);
+
+            const monthStart = new Date();
+            monthStart.setDate(monthStart.getDate() - 30);
+            const monthActivities = activities.filter(a => new Date(a.date) >= monthStart);
+            const monthFootprint = monthActivities.reduce((sum, a) => sum + a.carbonEmission, 0);
+
+            // Update stats
+            document.getElementById('todayFootprint').textContent = `${todayFootprint.toFixed(2)} kg`;
+            document.getElementById('weeklyFootprint').textContent = `${weekFootprint.toFixed(2)} kg`;
+            document.getElementById('monthlyFootprint').textContent = `${monthFootprint.toFixed(2)} kg`;
+            document.getElementById('streakCount').textContent = `🔥 ${currentUser.streak} days`;
+
+            // Calculate average
+            const daysActive = new Set(activities.map(a => a.date)).size || 1;
+            const userAvg = currentUser.totalCarbonFootprint / daysActive;
+            document.getElementById('userAverage').textContent = `${userAvg.toFixed(2)} kg CO2`;
+
+            // Comparison
+            const avgPerson = 36.4;
+            const comparisonMsg = document.getElementById('comparisonMessage');
+            if (userAvg < avgPerson) {
+                comparisonMsg.textContent = `🎉 ${((1 - userAvg/avgPerson) * 100).toFixed(0)}% below average!`;
+                comparisonMsg.className = 'text-lg font-semibold text-green-600';
+            } else {
+                comparisonMsg.textContent = `⚠️ ${((userAvg/avgPerson - 1) * 100).toFixed(0)}% above average`;
+                comparisonMsg.className = 'text-lg font-semibold text-red-600';
+            }
+
+            // Load charts
+            loadCategoryChart(activities);
+            loadTrendChart(activities);
+
+            // Load recent activities
+            loadRecentActivities(activities);
+        }
+
+        function loadCategoryChart(activities) {
+            const categoryData = {
+                transportation: 0,
+                food: 0,
+                electricity: 0,
+                shopping: 0
+            };
+
+            activities.forEach(a => {
+                categoryData[a.category] += a.carbonEmission;
+            });
+
+            const ctx = document.getElementById('categoryChart');
+            if (window.categoryChartInstance) {
+                window.categoryChartInstance.destroy();
+            }
+
+            window.categoryChartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Transportation', 'Food', 'Electricity', 'Shopping'],
+                    datasets: [{
+                        data: Object.values(categoryData),
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadTrendChart(activities) {
+            const last7Days = [];
+            const emissions = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                last7Days.push(dateStr);
+                
+                const dayActivities = activities.filter(a => a.date === dateStr);
+                const dayEmission = dayActivities.reduce((sum, a) => sum + a.carbonEmission, 0);
+                emissions.push(dayEmission);
+            }
+
+            const ctx = document.getElementById('trendChart');
+            if (window.trendChartInstance) {
+                window.trendChartInstance.destroy();
+            }
+
+            window.trendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: last7Days.map(d => new Date(d).toLocaleDateString('en-US', { weekday: 'short' })),
+                    datasets: [{
+                        label: 'Daily CO2 (kg)',
+                        data: emissions,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadRecentActivities(activities) {
+            const recentDiv = document.getElementById('recentActivities');
+            const recent = activities.slice(-5).reverse();
+
+            if (recent.length === 0) {
+                recentDiv.innerHTML = '<p class="text-gray-500 text-center">No activities yet. Start logging!</p>';
+                return;
+            }
+
+            recentDiv.innerHTML = recent.map(a => {
+                const categoryIcons = {
+                    transportation: '🚗',
+                    food: '🍽️',
+                    electricity: '⚡',
+                    shopping: '🛍️'
+                };
+
+                return `
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-md">
+                        <div class="flex items-center">
+                            <span class="text-2xl mr-3">${categoryIcons[a.category]}</span>
+                            <div>
+                                <p class="font-semibold text-gray-800">${emissionFactors[a.category][a.subcategory].label}</p>
+                                <p class="text-sm text-gray-600">${a.value} ${emissionFactors[a.category][a.subcategory].unit} • ${new Date(a.date).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-green-600">${a.carbonEmission.toFixed(2)} kg</p>
+                            <p class="text-xs text-gray-500">CO2</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getUserActivities() {
+            const allActivities = JSON.parse(localStorage.getItem('ecostep_activities'));
+            return allActivities.filter(a => a.userId === currentUser.id);
+        }
+
+        // ============================================
+        // INSIGHTS
+        // ============================================
+
+        let insightsPeriod = 'week';
+
+        function setInsightsPeriod(period) {
+            insightsPeriod = period;
+            document.getElementById('weekBtn').className = period === 'week' ? 
+                'px-6 py-2 rounded-md bg-green-600 text-white font-semibold' : 
+                'px-6 py-2 rounded-md bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300';
+            document.getElementById('monthBtn').className = period === 'month' ? 
+                'px-6 py-2 rounded-md bg-green-600 text-white font-semibold' : 
+                'px-6 py-2 rounded-md bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300';
+            
+            loadInsights(period);
+        }
+
+        function loadInsights(period) {
+            const activities = getUserActivities();
+            const days = period === 'week' ? 7 : 30;
+            
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - days);
+            
+            const periodActivities = activities.filter(a => new Date(a.date) >= startDate);
+            
+            // Calculate stats
+            const totalEmissions = periodActivities.reduce((sum, a) => sum + a.carbonEmission, 0);
+            const avgDaily = totalEmissions / days;
+            
+            // Find highest category
+            const categoryTotals = {
+                transportation: 0,
+                food: 0,
+                electricity: 0,
+                shopping: 0
+            };
+            
+            periodActivities.forEach(a => {
+                categoryTotals[a.category] += a.carbonEmission;
+            });
+            
+            const highestCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
+            
+            // Update stats
+            document.getElementById('insightsTotalEmissions').textContent = `${totalEmissions.toFixed(2)} kg CO2`;
+            document.getElementById('insightsAvgDaily').textContent = `${avgDaily.toFixed(2)} kg CO2`;
+            document.getElementById('insightsHighestCategory').textContent = highestCategory[0].charAt(0).toUpperCase() + highestCategory[0].slice(1);
+            
+            // Prediction
+            const prediction = avgDaily * 7;
+            document.getElementById('predictionText').textContent = `Next week: ~${prediction.toFixed(2)} kg CO2`;
+            
+            // Load charts
+            loadInsightsLineChart(periodActivities, days);
+            loadInsightsPieChart(categoryTotals);
+        }
+
+        function loadInsightsLineChart(activities, days) {
+            const dates = [];
+            const emissions = [];
+            
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                dates.push(dateStr);
+                
+                const dayActivities = activities.filter(a => a.date === dateStr);
+                const dayEmission = dayActivities.reduce((sum, a) => sum + a.carbonEmission, 0);
+                emissions.push(dayEmission);
+            }
+
+            const ctx = document.getElementById('insightsLineChart');
+            if (window.insightsLineChartInstance) {
+                window.insightsLineChartInstance.destroy();
+            }
+
+            window.insightsLineChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates.map(d => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+                    datasets: [{
+                        label: 'Daily CO2 (kg)',
+                        data: emissions,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadInsightsPieChart(categoryTotals) {
+            const ctx = document.getElementById('insightsPieChart');
+            if (window.insightsPieChartInstance) {
+                window.insightsPieChartInstance.destroy();
+            }
+
+            window.insightsPieChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Transportation', 'Food', 'Electricity', 'Shopping'],
+                    datasets: [{
+                        data: Object.values(categoryTotals),
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============================================
+        // TIPS
+        // ============================================
+
+        function loadTips() {
+            const activities = getUserActivities();
+            
+            if (activities.length === 0) {
+                document.getElementById('personalizedTip').textContent = 'Start logging activities to get personalized tips!';
+                return;
+            }
+
+            // Find highest emission category
+            const categoryTotals = {
+                transportation: 0,
+                food: 0,
+                electricity: 0,
+                shopping: 0
+            };
+            
+            activities.forEach(a => {
+                categoryTotals[a.category] += a.carbonEmission;
+            });
+            
+            const highest = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
+            
+            const tips = {
+                transportation: 'Your transportation emissions are high! Consider using public transport, cycling, or carpooling. Just 2 days of cycling per week can reduce 20% of your transport emissions!',
+                food: 'Food is your biggest carbon source! Try reducing meat consumption, especially beef. Even one vegetarian day per week can cut food emissions by 15%!',
+                electricity: 'Your electricity usage is significant! Switch to LED bulbs, unplug devices when not in use, and set AC to 24-26°C. These simple changes can reduce emissions by 30%!',
+                shopping: 'Shopping is adding to your footprint! Buy less, choose quality over quantity, and prefer second-hand items. Reducing shopping by 20% can make a huge impact!'
+            };
+            
+            document.getElementById('personalizedTip').textContent = tips[highest[0]];
+        }
+
+        // ============================================
+        // LEADERBOARD
+        // ============================================
+
+        function updateLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem('ecostep_leaderboard'));
+            
+            // Update current user in leaderboard
+            const userIndex = leaderboard.findIndex(u => u.name === currentUser.name);
+            const activities = getUserActivities();
+            const daysActive = new Set(activities.map(a => a.date)).size || 1;
+            const avgFootprint = currentUser.totalCarbonFootprint / daysActive;
+            
+            if (userIndex >= 0) {
+                leaderboard[userIndex] = {
+                    name: currentUser.name,
+                    points: currentUser.points,
+                    avgFootprint: avgFootprint
+                };
+            } else {
+                leaderboard.push({
+                    name: currentUser.name,
+                    points: currentUser.points,
+                    avgFootprint: avgFootprint
+                });
+            }
+            
+            localStorage.setItem('ecostep_leaderboard', JSON.stringify(leaderboard));
+        }
+
+        function loadLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem('ecostep_leaderboard'));
+            const sorted = leaderboard.sort((a, b) => b.points - a.points);
+            
+            const userRank = sorted.findIndex(u => u.name === currentUser.name) + 1;
+            document.getElementById('userRank').textContent = `#${userRank}`;
+            document.getElementById('userPoints').textContent = `${currentUser.points} pts`;
+            
+            const listDiv = document.getElementById('leaderboardList');
+            listDiv.innerHTML = sorted.map((user, index) => {
+                const isCurrentUser = user.name === currentUser.name;
+                const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32'];
+                const bgColor = isCurrentUser ? 'bg-green-50' : 'bg-white';
+                
+                return `
+                    <div class="${bgColor} border-b border-gray-200 p-6 flex items-center justify-between hover:bg-gray-50">
+                        <div class="flex items-center">
+                            <div class="text-2xl font-bold mr-4" style="color: ${index < 3 ? rankColors[index] : '#6b7280'}">
+                                ${index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`}
+                            </div>
+                            <div>
+                                <p class="font-bold text-lg text-gray-800">${user.name} ${isCurrentUser ? '(You)' : ''}</p>
+                                <p class="text-sm text-gray-600">Avg: ${user.avgFootprint.toFixed(2)} kg CO2/day</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-2xl font-bold text-green-600">${user.points}</p>
+                            <p class="text-sm text-gray-600">points</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============================================
+        // PROFILE & BADGES
+        // ============================================
+
+        function loadProfile() {
+            document.getElementById('profileInitial').textContent = currentUser.name.charAt(0).toUpperCase();
+            document.getElementById('profileName').textContent = currentUser.name;
+            document.getElementById('profileEmail').textContent = currentUser.email;
+            document.getElementById('profileJoinDate').textContent = new Date(currentUser.createdAt).toLocaleDateString();
+            
+            document.getElementById('profilePoints').textContent = currentUser.points;
+            document.getElementById('profileStreak').textContent = currentUser.streak;
+            document.getElementById('profileBadges').textContent = currentUser.badges.length;
+            
+            const activities = getUserActivities();
+            document.getElementById('profileActivities').textContent = activities.length;
+            
+            loadBadges();
+        }
+
+        function checkBadges() {
+            const users = JSON.parse(localStorage.getItem('ecostep_users'));
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            
+            // Check point-based badges
+            if (currentUser.points >= 10 && !currentUser.badges.includes('greenStarter')) {
+                currentUser.badges.push('greenStarter');
+            }
+            if (currentUser.points >= 50 && !currentUser.badges.includes('ecoWarrior')) {
+                currentUser.badges.push('ecoWarrior');
+            }
+            if (currentUser.points >= 100 && !currentUser.badges.includes('planetSaver')) {
+                currentUser.badges.push('planetSaver');
+            }
+            
+            // Check streak badges
+            if (currentUser.streak >= 7 && !currentUser.badges.includes('weekStreak')) {
+                currentUser.badges.push('weekStreak');
+            }
+            if (currentUser.streak >= 30 && !currentUser.badges.includes('monthStreak')) {
+                currentUser.badges.push('monthStreak');
+            }
+            
+            // Check low footprint badge
+            const activities = getUserActivities();
+            const daysActive = new Set(activities.map(a => a.date)).size || 1;
+            const avgFootprint = currentUser.totalCarbonFootprint / daysActive;
+            if (avgFootprint < 20 && activities.length >= 5 && !currentUser.badges.includes('lowFootprint')) {
+                currentUser.badges.push('lowFootprint');
+            }
+            
+            users[userIndex] = currentUser;
+            localStorage.setItem('ecostep_users', JSON.stringify(users));
+            localStorage.setItem('ecostep_currentUser', JSON.stringify(currentUser));
+        }
+
+        function loadBadges() {
+            const badgesContainer = document.getElementById('badgesContainer');
+            
+            const allBadges = [
+                { id: 'greenStarter', name: 'Green Starter', icon: '🌱', desc: 'Earn 10 points' },
+                { id: 'ecoWarrior', name: 'Eco Warrior', icon: '⚔️', desc: 'Earn 50 points' },
+                { id: 'planetSaver', name: 'Planet Saver', icon: '🌍', desc: 'Earn 100 points' },
+                { id: 'weekStreak', name: 'Week Warrior', icon: '🔥', desc: '7 day streak' },
+                { id: 'monthStreak', name: 'Month Master', icon: '👑', desc: '30 day streak' },
+                { id: 'lowFootprint', name: 'Carbon Cutter', icon: '✂️', desc: 'Low footprint' }
+            ];
+            
+            badgesContainer.innerHTML = allBadges.map(badge => {
+                const earned = currentUser.badges.includes(badge.id);
+                return `
+                    <div class="text-center p-4 rounded-lg ${earned ? 'bg-green-100' : 'bg-gray-100'} ${earned ? 'badge' : ''}">
+                        <div class="text-4xl mb-2 ${earned ? '' : 'grayscale opacity-50'}">${badge.icon}</div>
+                        <p class="font-semibold text-gray-800 text-sm">${badge.name}</p>
+                        <p class="text-xs text-gray-600">${badge.desc}</p>
+                        ${earned ? '<p class="text-xs text-green-600 font-semibold mt-1">✓ Earned</p>' : '<p class="text-xs text-gray-400 mt-1">Locked</p>'}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============================================
+        // STREAK MANAGEMENT
+        // ============================================
+
+        function updateStreak() {
+            const users = JSON.parse(localStorage.getItem('ecostep_users'));
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            
+            const today = new Date().toISOString().split('T')[0];
+            const lastActivity = currentUser.lastActivity ? new Date(currentUser.lastActivity).toISOString().split('T')[0] : null;
+            
+            if (!lastActivity) {
+                users[userIndex].streak = 0;
+            } else {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().split('T')[0];
+                
+                if (lastActivity === today) {
+                    // Already logged today, keep streak
+                } else if (lastActivity === yesterdayStr) {
+                    // Logged yesterday, increment streak
+                    users[userIndex].streak += 1;
+                } else {
+                    // Streak broken
+                    users[userIndex].streak = 0;
+                }
+            }
+            
+            currentUser = users[userIndex];
+            localStorage.setItem('ecostep_users', JSON.stringify(users));
+            localStorage.setItem('ecostep_currentUser', JSON.stringify(currentUser));
+        }
+
+        // ============================================
+        // DARK MODE
+        // ============================================
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark');
+            const isDark = document.body.classList.contains('dark');
+            document.getElementById('darkModeIcon').textContent = isDark ? '☀️' : '🌙';
+            localStorage.setItem('ecostep_darkMode', isDark);
+        }
+
+        function loadDarkMode() {
+            const isDark = localStorage.getItem('ecostep_darkMode') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark');
+                document.getElementById('darkModeIcon').textContent = '☀️';
+            }
+        }
+
+        // ============================================
+        // UTILITIES
+        // ============================================
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all your data? This cannot be undone!')) {
+                const allActivities = JSON.parse(localStorage.getItem('ecostep_activities'));
+                const filteredActivities = allActivities.filter(a => a.userId !== currentUser.id);
+                localStorage.setItem('ecostep_activities', JSON.stringify(filteredActivities));
+                
+                const users = JSON.parse(localStorage.getItem('ecostep_users'));
+                const userIndex = users.findIndex(u => u.id === currentUser.id);
+                users[userIndex].totalCarbonFootprint = 0;
+                users[userIndex].points = 0;
+                users[userIndex].badges = [];
+                users[userIndex].streak = 0;
+                localStorage.setItem('ecostep_users', JSON.stringify(users));
+                
+                alert('All data cleared!');
+                logout();
+            }
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        window.onload = function() {
+            initStorage();
+            loadDarkMode();
+            checkAuth();
+        };
+    </script>
+</body>
+</html>
